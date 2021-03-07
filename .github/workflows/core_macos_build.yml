@@ -1,0 +1,45 @@
+name: MacOS Build
+on:
+  push:
+      branches: [ master ]
+  pull_request:
+      branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+    
+      matrix:
+        compiler: [gcc, clang]
+        
+        include:
+          - os: maco-11.0
+            name: MacOS Big Sur 11.0
+            compiler: gcc
+            
+          - os: macos-10.15
+            name: MacOS Catalina 10.15
+            compiler: clang
+            
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+    env:
+      compiler: ${{ matrix.compiler }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for Updates
+        run: brew update
+       
+      - name: Install Required Packages
+        run: brew install cmake openssl readline ace mysql gcc g++ clang
+
+      - name: Check for Submodule Updates
+        run: source ./apps/ci/ci-submodule-update.sh
+ 
+      - name: Build Mangos Project
+        run: source ./apps/ci/ci-compile-macos.sh
